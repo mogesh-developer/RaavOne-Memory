@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "raavone-memory"
-version = "0.1.0"
+version = "1.0.0"
 description = "Personal assistant memory service backend using FastAPI"
 authors = ["Your Name <you@example.com>"]
 
