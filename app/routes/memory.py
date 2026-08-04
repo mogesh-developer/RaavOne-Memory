@@ -13,6 +13,7 @@ from app.services.memory_service import (
     backfill_embeddings,
     search_memories,
 )
+from app.services.forgetting_service import run_forgetting_engine
 
 router = APIRouter(prefix="/memory", tags=["Memory"])
 
@@ -60,4 +61,16 @@ def get_profile_summary(user_id: str, db: Session = Depends(get_db)):
     return {
         "user_id": user_id,
         "profile_summary": summary
+    }
+
+@router.post("/cleanup")
+def cleanup_expired_memories(
+    days: int = 30, 
+    importance_limit: int = 3, 
+    db: Session = Depends(get_db)
+):
+    deleted_count = run_forgetting_engine(db, days_threshold=days, importance_limit=importance_limit)
+    return {
+        "status": "success",
+        "forgotten_memories_count": deleted_count
     }
