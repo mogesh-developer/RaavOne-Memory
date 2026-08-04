@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.services.profile_service import generate_user_profile
 from app.services.timeline_service import generate_user_timeline
+from app.services.analytics_service import get_user_analytics
 
 from app.database import get_db
 from app.schemas.message import MessageCreate
@@ -83,4 +84,13 @@ def get_timeline(user_id: str, db: Session = Depends(get_db)):
     return {
         "user_id": user_id,
         "timeline": timeline
+    }
+
+
+@router.get("/analytics/{user_id}")
+def get_analytics(user_id: str, db: Session = Depends(get_db)):
+    stats = get_user_analytics(db, user_id)
+    return {
+        "user_id": user_id,
+        "analytics": stats
     }
