@@ -112,7 +112,13 @@ def save_memories(
 
         if updates_id:
             # Conflict found: update existing SQLite record
-            existing_record = db.query(Memory).filter(Memory.id == updates_id).first()
+            # Audited: Ensure we only update records belonging to the active user
+            existing_record = (
+                db.query(Memory)
+                .filter(Memory.id == updates_id)
+                .filter(Memory.user_id == user_id)
+                .first()
+            )
             if existing_record:
                 existing_record.content = merged_content
                 existing_record.updated_at = func.now()

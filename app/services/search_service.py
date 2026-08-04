@@ -41,7 +41,14 @@ def semantic_search(query: str, user_id: str = None):
     # 4. Fetch candidate details from SQLite
     db = SessionLocal()
     try:
-        memories = db.query(Memory).filter(Memory.id.in_(int_ids)).all()
+        # Audited: Enforce user_id isolation in SQLite fetch
+        memories = (
+            db.query(Memory)
+            .filter(Memory.id.in_(int_ids))
+            .filter(Memory.user_id == user_id)
+            .all()
+        )
+
     finally:
         db.close()
 
