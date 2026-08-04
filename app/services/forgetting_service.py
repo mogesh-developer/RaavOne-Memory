@@ -4,6 +4,16 @@ from app.models.memory import Memory
 from app.vector.chroma import collection
 
 def run_forgetting_engine(db: Session, days_threshold: int = 30, importance_limit: int = 3) -> int:
+    """Executes the garbage collection forgetting engine by deleting outdated, low-importance memories.
+
+    Args:
+        db (Session): SQLite database session.
+        days_threshold (int): The age limit in days beyond which memories are eligible for deletion. Default is 30.
+        importance_limit (int): The importance threshold below which memories are eligible for deletion. Default is 3.
+
+    Returns:
+        int: Total number of memories deleted.
+    """
     # 1. Calculate the cutoff time (30 days ago)
     cutoff = datetime.utcnow() - timedelta(days=days_threshold)
 

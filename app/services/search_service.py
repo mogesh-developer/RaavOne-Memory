@@ -5,7 +5,16 @@ from app.database import SessionLocal
 from app.models.memory import Memory
 
 
-def semantic_search(query: str, user_id: str = None):
+def semantic_search(query: str, user_id: str = None) -> dict:
+    """Executes a compound-ranked semantic search query on ChromaDB and SQLite candidates.
+
+    Args:
+        query (str): The natural language search term.
+        user_id (str): The identifier of the querying user.
+
+    Returns:
+        dict: A dictionary containing ranked memory document strings inside 'documents'.
+    """
     # 1. Generate Query Embedding
     embedding = create_embedding(query)
 

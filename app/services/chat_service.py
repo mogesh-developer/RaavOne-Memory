@@ -8,6 +8,16 @@ from raavone_core import ChatModel
 
 
 def chat(db: Session, user_id: str, message: str) -> str:
+    """Orchestrates the personalized chat loop by loading user context and querying the LLM.
+
+    Args:
+        db (Session): SQLite database session.
+        user_id (str): The identifier of the target user.
+        message (str): The incoming chat query text from the user.
+
+    Returns:
+        str: Personalized assistant chat response.
+    """
     # 1. Find or create an active chat session for the user
     session = (
         db.query(ChatSession)
