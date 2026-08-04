@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.services.profile_service import generate_user_profile
+from app.services.timeline_service import generate_user_timeline
 
 from app.database import get_db
 from app.schemas.message import MessageCreate
@@ -73,4 +74,13 @@ def cleanup_expired_memories(
     return {
         "status": "success",
         "forgotten_memories_count": deleted_count
+    }
+
+
+@router.get("/timeline/{user_id}")
+def get_timeline(user_id: str, db: Session = Depends(get_db)):
+    timeline = generate_user_timeline(db, user_id)
+    return {
+        "user_id": user_id,
+        "timeline": timeline
     }
