@@ -55,6 +55,7 @@ def save_memories(
         if existing:
 
             existing.importance += 1
+            existing.updated_at = func.now()
             saved_memories.append(existing)
 
         else:
@@ -107,4 +108,4 @@ def save_memories(
     ]
 
 
-
+
