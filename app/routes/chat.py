@@ -9,7 +9,9 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("")
 def chat_endpoint(data: ChatRequest, db: Session = Depends(get_db)):
-    chat(db, data.user_id, data.message)
+    response_text = chat(db, data.user_id, data.message)
     return {
-        "status": "coming soon"
+        "user_id": data.user_id,
+        "message": data.message,
+        "response": response_text
     }
