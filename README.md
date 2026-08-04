@@ -1,60 +1,46 @@
-<div align="center">
-
 # 🧠 RaavOne Memory Engine `v3.0`
 
-[![Version](https://img.shields.io/badge/Release-v3.0.0-007EC6.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mogesh-developer/RaavOne-Memory)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector--Store-orange.svg?style=for-the-badge&logo=chromadb&logoColor=white)](https://www.trychroma.com/)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red.svg?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mogesh-developer/RaavOne-Memory/main/assets/banner.png" alt="RaavOne Memory Engine Header" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);" onerror="this.style.display='none';">
+</p>
 
-**An intelligent, autonomous long-term semantic memory & user profiling engine built for AI agents and personalized chat assistants.**
+<p align="center">
+  <a href="https://github.com/mogesh-developer/RaavOne-Memory"><img src="https://img.shields.io/badge/Release-v3.0.0-6E3CBC?style=for-the-badge&logo=github&logoColor=white" alt="Version"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.100%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://www.trychroma.com/"><img src="https://img.shields.io/badge/ChromaDB-Vector--Store-FF6F00?style=for-the-badge&logo=chromadb&logoColor=white" alt="ChromaDB"></a>
+</p>
 
-[Key Features](#-all-features--capabilities) •
-[Architecture](#-system-architecture) •
-[Installation](#-installation--run) •
-[Quick Start](#-quick-start-sdk-usage) •
-[API Examples](#-api-examples) •
-[Folder Structure](#-folder-structure) •
-[Roadmap](#-roadmap-status)
-
----
-
-</div>
-
-## 📌 Overview
-
-Standard LLMs suffer from **context window amnesia**—when a session resets, all previous knowledge about the user is lost. 
-
-**RaavOne Memory v3.0** resolves this by introducing a dual-layered long-term storage engine. It decouples SQLite (relational source of truth for message histories and category metadata) and ChromaDB (high-speed vector store indexing embeddings). It automatically extracts profile categories, tracks learning progress chronologically, purges stale items via importance decay, and handles conflict resolution in real-time.
+<p align="center">
+  <b>An intelligent, autonomous long-term semantic memory & user profiling engine built for production-grade AI agents and personalized chat assistants.</b>
+</p>
 
 ---
 
-## 🔥 All Features & Capabilities
+## 📌 Table of Contents
+* [🔥 All Features & The Use of Features](#-all-features--the-use-of-features)
+* [🏗️ System Architecture](#%EF%B8%8F-system-architecture)
+* [🔄 Data Flow Diagrams](#-data-flow-diagrams)
+* [🚀 Getting Started](#-getting-started)
+* [⚡ SDK Quick Start](#-sdk-quick-start)
+* [📡 API Examples](#-api-examples)
+* [📂 Folder Structure](#-folder-structure)
+* [🗺️ Completed Phase Roadmap](#%EF%B8%8F-completed-phase-roadmap)
 
-Here is the complete list of features available in **RaavOne Memory v3.0**:
+---
 
-### 📦 1. Multi-User Isolation & Partitioning
-- **Partitioned Queries**: Enforces strict boundaries to ensure User A can never search, read, or overwrite User B's memories.
-- **Audited Lookups**: Validates SQLite fetches and ChromaDB filters by user IDs.
+## 🔥 All Features & The Use of Features
 
-### 🧠 2. Context Builder & Personalized Chat
-- **Similarity Ranking**: Combines Cosine Similarity, Recency, and Frequency to rank the best matching context facts.
-- **Context Injection**: Formulates custom system instructions dynamically in real-time.
-
-### ⚡ 3. Memory Category Classification (10 Domains)
-Categorizes user knowledge into 10 structured domains:
-`Skill`, `Project`, `Interest`, `Preference`, `Experience`, `Tool`, `Goal`, `Work`, `Location`, `Relationship`.
-
-### ⌛ 4. Chronological Timeline Engine
-Provides structured progress tracking over time:
-- Injects dates and events into an LLM progression visualizer (`GET /memory/timeline/{user_id}`).
-
-### 🗑️ 5. Forgetting Engine
-Automated garbage collection cleans up low-importance temporary data (cutoff at 30 days) while protecting high-importance user attributes.
-
-### 🔄 6. Conflict Resolution & Overwrites
-Detects state conflicts (e.g. changing favorite framework) and merges or replaces outdated statements using JSON extraction.
+| Feature | The Use of Feature / Why it Matters |
+| :--- | :--- |
+| **🛡️ Multi-User Data Isolation** | Prevents data leakage between users. Every database read, write, and search operation is sandboxed strictly by `user_id`. |
+| **💬 Context Builder & Personalized Chat** | Assembles long-term memories relevant to the current user query and feeds them to the LLM system prompt for tailored assistant answers. |
+| **🏷️ Memory Category Classification** | Automatically segments facts into 10 key domains (e.g. `Skill`, `Project`, `Preference`) for organized entity extraction. |
+| **🧠 Compound Importance Score Ranking** | Combines Cosine Similarity, Recency, and Frequency to retrieve cognitive-grade memories rather than simple vector matches. |
+| **⏳ Chronological Timeline Engine** | Compiles progression timelines chronologically so agents understand the user's roadmap journey over time. |
+| **🗑️ Forgetting Engine** | Runs garbage collection cleanup. Removes low-importance temporary data (older than 30 days) to prevent index clutter. |
+| **🔄 Conflict Resolution** | Detects state conflict overlaps (e.g., favorite framework switches) and updates records instead of making redundant copies. |
+| **🔌 Unified SDK Wrapper Class** | Exposes simple static methods (`Memory.chat()`, `Memory.get_timeline()`) managing connection sessions out-of-the-box. |
 
 ---
 
@@ -62,109 +48,99 @@ Detects state conflicts (e.g. changing favorite framework) and merges or replace
 
 ```mermaid
 graph TD
-    User([User / AI Client]) -->|Query / Chat| SDK[Memory SDK Wrapper]
-    SDK -->|Route request| Gateway[FastAPI Router]
+    Client([AI Client / Frontend]) -->|Query / Chat| SDK[Memory SDK Wrapper]
     
-    subgraph "RaavOne Memory Engine"
-        Gateway --> ChatService[Context Builder & Chat Service]
-        Gateway --> SearchService[Similarity Re-ranking Service]
-        Gateway --> AnalyticsService[Analytics Engine]
-        Gateway --> ForgetService[Forgetting Engine]
+    subgraph "RaavOne Memory Engine Backend"
+        SDK -->|Route API Requests| Router[FastAPI Router]
+        Router -->|Chat Orchestration| ChatService[Context Builder & Chat Service]
+        Router -->|Analytics query| AnalyticsService[Analytics Engine]
+        Router -->|Cutoff triggers| ForgetService[Forgetting Engine]
         
-        ChatService -->|Query match| SearchService
+        ChatService -->|Query match| SearchService[Similarity Re-ranking Service]
+        SearchService -->|Vector Scan| Chroma[(ChromaDB Vector Store)]
+        ChatService -->|Query Details| SQLite[(SQLite Metadata DB)]
     end
-
-    ChatService -->|Read / Write| SQLite[(SQLite Metadata DB)]
-    SearchService -->|Vector Scan| Chroma[(ChromaDB Vector Store)]
+    
     ForgetService -->|Purge records| SQLite
     ForgetService -->|Purge vectors| Chroma
 ```
 
 ---
 
-## 🗄️ Database Entity Relationship
+## 🔄 Data Flow Diagrams
 
+### Chronological Memory Retrieval
 ```mermaid
-erDiagram
-    USERS ||--o{ SESSIONS : "creates"
-    USERS ||--o{ MESSAGES : "sends"
-    USERS ||--o{ MEMORIES : "owns"
-    SESSIONS ||--o{ MESSAGES : "contains"
+sequenceDiagram
+    autonumber
+    actor Client as AI Frontend
+    participant API as FastAPI Backend
+    participant Engine as Context Builder
+    participant DB as SQLite DB
+    participant Chroma as ChromaDB Vector Store
 
-    SESSIONS {
-        string session_id PK
-        string user_id FK
-        datetime started_at
-    }
-    MESSAGES {
-        int id PK
-        string session_id FK
-        string user_id FK
-        string role
-        string text
-    }
-    MEMORIES {
-        int id PK
-        string user_id FK
-        string category
-        string content
-        int importance
-        datetime created_at
-        datetime updated_at
-    }
+    Client->>API: POST /chat { user_id, message }
+    API->>Chroma: Vector search (query embedding)
+    Chroma-->>API: Return candidate indices
+    API->>DB: Fetch records & calculate compound score (Similarity + Recency + Frequency)
+    DB-->>API: Return sorted candidate memories
+    API->>Engine: Build context and inject system prompt
+    Engine-->>Client: Return personalized assistant text response
 ```
 
 ---
 
-## 🚀 Installation & Run
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Python 3.10+**
-- **pip** with virtual environment
+* **Python 3.10+**
+* **pip** (virtual environment recommended)
+
+### Installation & Run
 
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/mogesh-developer/RaavOne-Memory.git
 cd RaavOne-Memory
 
-# 2. Setup Virtual Environment
+# 2. Setup a virtual environment
 python -m venv venv
 venv\Scripts\activate  # On Windows
 
-# 3. Install dependencies
-pip install .
+# 3. Install packages in editable mode
+pip install -e .
 
-# 4. Create .env file with API Keys
-echo GROQ_API_KEY=your_api_key_here > .env
+# 4. Configure Groq API key in your .env
+echo GROQ_API_KEY=your_groq_api_key_here > .env
 
-# 5. Start Server
+# 5. Launch the FastAPI server
 uvicorn app.main:app --reload
 ```
 
 ---
 
-## ⚡ Quick Start (SDK Usage)
+## ⚡ SDK Quick Start
 
-You can easily integrate **RaavOne Memory** directly into your Python apps:
+Integrate RaavOne Memory directly into your Python scripts:
 
 ```python
 from raavone_core import Memory
 
-# 1. Chat personalized with long-term memory context
-response = Memory.chat(user_id="mogesh", message="Suggest a backend framework.")
-print("Assistant:", response)
+# 1. Start a chat with long-term memory context
+response = Memory.chat(user_id="mogesh", message="I want to learn Go language.")
+print("AI Response:", response)
 
-# 2. Get summarized persona profile
+# 2. Retrieve user persona profile
 profile = Memory.get_profile(user_id="mogesh")
-print("User Persona:\n", profile)
+print("User Profile:\n", profile)
 
-# 3. Get user progress timeline
+# 3. Retrieve chronological milestones
 timeline = Memory.get_timeline(user_id="mogesh")
 print("User Timeline:\n", timeline)
 
-# 4. Get database metrics analytics
-stats = Memory.get_analytics(user_id="mogesh")
-print("Stats:", stats)
+# 4. View memory statistics and health
+analytics = Memory.get_analytics(user_id="mogesh")
+print("Analytics Stats:", analytics)
 ```
 
 ---
@@ -179,17 +155,11 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "user_id": "mogesh",
-  "query": "coding language"
+  "query": "backend development stack"
 }'
 ```
 
-### 2. User Memory Analytics
-`GET /memory/analytics/{user_id}`
-```bash
-curl -X 'GET' 'http://localhost:8000/memory/analytics/mogesh'
-```
-
-### 3. Cleanup Expiring memories
+### 2. Run Forgetting Engine Cleanup
 `POST /memory/cleanup`
 ```bash
 curl -X 'POST' 'http://localhost:8000/memory/cleanup?days=30&importance_limit=3'
@@ -203,40 +173,39 @@ curl -X 'POST' 'http://localhost:8000/memory/cleanup?days=30&importance_limit=3'
 RaavOne-Memory/
 │
 ├── app/
-│   ├── models/           # SQLAlchemy schemas (Memory, Message, Session)
-│   ├── routes/           # FastAPI router endpoints (chat, memory)
-│   ├── schemas/          # Pydantic schemas (message, chat, memory)
-│   ├── services/         # Core business logic (chat, profile, timeline, forgetting)
-│   ├── prompts/          # System prompts templates
-│   ├── database.py       # SQLite db connections
-│   └── main.py           # FastAPI entrypoint
+│   ├── models/           # SQLite schemas (Memory, Message, Session)
+│   ├── routes/           # FastAPI routers (chat, memory endpoints)
+│   ├── schemas/          # Pydantic schemas validation
+│   ├── services/         # Core logic (chat, profile, timeline, forgetting, analytics)
+│   ├── prompts/          # System prompt instruction templates
+│   ├── database.py       # DB connection pool setup
+│   └── main.py           # Application root entry point
 │
 ├── raavone_core/         # SDK wrapper classes (Memory)
 │
-├── tests/                # PyTest suite files
+├── tests/                # Comprehensive test suites
 │   ├── conftest.py
 │   ├── test_chat.py
 │   ├── test_memory.py
 │   ├── test_profile.py
 │   └── test_search.py
 │
-├── pyproject.toml        # Poetry / pip configuration
-└── README.md             # Documentation
+├── pyproject.toml        # Poetry / package configuration
+└── README.md             # Developer documentation
 ```
 
 ---
 
-## 🗺️ Roadmap Status
+## 🗺️ Completed Phase Roadmap
 
-* [x] **Base Infrastructure & SQLite Schema**
-* [x] **Vector Store Indexing (ChromaDB)**
-* [x] **Context Builder & Personalized Chat** (Phase 1)
-* [x] **Memory Category Classification** (Phase 2)
-* [x] **Importance Ranking Model** (Phase 3)
-* [x] **Memory Summarizer Profile** (Phase 4)
-* [x] **Chronological Timeline Engine** (Phase 5)
-* [x] **Forgetting Engine Garbage Collection** (Phase 6)
-* [x] **Conflict Resolution & State Merges** (Phase 7)
-* [x] **Multi-user Data Isolation Auditing** (Phase 8)
-* [x] **Memory Analytics & Metrics Stats** (Phase 9)
-* [x] **Unified SDK Wrapper Client** (Phase 10)
+*   [x] **Base Infrastructure & DB Setup** (SQLite Schema, ChromaDB Persistent Collection)
+*   [x] **Phase 1: Context Builder** (Personalized LLM chats with context injection)
+*   [x] **Phase 2: Memory Categories** (Structured classification tags validation)
+*   [x] **Phase 3: Importance Ranking** (Similarity + Recency + Frequency ranking)
+*   [x] **Phase 4: Memory Summarizer** (Markdown user profiles generation)
+*   [x] **Phase 5: Timeline Engine** (Chronological milestone progression visualization)
+*   [x] **Phase 6: Forgetting Engine** (Cutoff cleanup filters)
+*   [x] **Phase 7: Conflict Resolution** (Overwrites check during saving)
+*   [x] **Phase 8: Multi-user Data Isolation** (user_id partition audits)
+*   [x] **Phase 9: Memory Analytics** (Category breakdown counters stats)
+*   [x] **Phase 10: Unified SDK Wrapper Client** (`Memory` class helper integration)
