@@ -1,4 +1,5 @@
 import json
+from sqlalchemy.sql import func
 from app.models.message import Message
 from app.models.memory import Memory
 from app.services.llm_service import extract_memory
@@ -37,11 +38,16 @@ def save_memories(
     session_id: str,
     memories: list,
 ):
+    from app.services.vector_service import add_memory
+    from app.vector.chroma import collection
+    from raavone_core import ChatModel
+    from app.prompts.conflict_prompt import CONFLICT_RESOLUTION_PROMPT
+    from raavone.schemas.memory_extraction import MemoryConflictCheck
 
     saved_memories = []
 
     for memory in memories:
-
+        # A. Check for exact duplicate
         existing = (
             db.query(Memory)
             .filter(
@@ -53,34 +59,100 @@ def save_memories(
         )
 
         if existing:
-
             existing.importance += 1
             existing.updated_at = func.now()
+            db.commit()
+            db.refresh(existing)
+            
+            # Sync updated importance to Chroma
+            try:
+                vector = create_embedding(existing.content)
+                collection.update(
+                    ids=[str(existing.id)],
+                    documents=[existing.content],
+                    embeddings=[vector],
+                    metadatas=[{
+                        "user_id": user_id,
+                        "category": existing.category,
+                        "importance": existing.importance,
+                    }]
+                )
+            except Exception as e:
+                print(f"Failed to update Chroma metadata for {existing.id}: {e}")
+                
             saved_memories.append(existing)
+            continue
 
-        else:
-
-            item = Memory(
-                user_id=user_id,
-                category=memory["category"],
-                content=memory["content"],
-                source_session=session_id,
+        # B. Check for semantic conflict/update in the same category
+        existing_in_cat = (
+            db.query(Memory)
+            .filter(
+                Memory.user_id == user_id,
+                Memory.category == memory["category"],
             )
+            .all()
+        )
 
-            db.add(item)
-            saved_memories.append(item)
+        updates_id = None
+        merged_content = None
 
-    db.commit()
+        if existing_in_cat:
+            existing_str = "\n".join([f"ID: {m.id} - {m.content}" for m in existing_in_cat])
+            prompt = CONFLICT_RESOLUTION_PROMPT.format(
+                new_memory=memory["content"],
+                existing_memories=existing_str
+            )
+            model = ChatModel()
+            try:
+                conflict_res = model.generate_json(prompt, MemoryConflictCheck)
+                updates_id = conflict_res.updates_id
+                merged_content = conflict_res.merged_content
+            except Exception as e:
+                print(f"Error checking conflict: {e}")
 
-    from app.services.vector_service import add_memory
+        if updates_id:
+            # Conflict found: update existing SQLite record
+            existing_record = db.query(Memory).filter(Memory.id == updates_id).first()
+            if existing_record:
+                existing_record.content = merged_content
+                existing_record.updated_at = func.now()
+                existing_record.importance += 1
+                db.commit()
+                db.refresh(existing_record)
+                
+                # Update ChromaDB vector
+                try:
+                    vector = create_embedding(merged_content)
+                    collection.update(
+                        ids=[str(existing_record.id)],
+                        documents=[merged_content],
+                        embeddings=[vector],
+                        metadatas=[{
+                            "user_id": user_id,
+                            "category": existing_record.category,
+                            "importance": existing_record.importance,
+                        }]
+                    )
+                except Exception as e:
+                    print(f"Failed to update Chroma vector: {e}")
+                    
+                saved_memories.append(existing_record)
+                continue
 
-    for item in saved_memories:
+        # C. Save as new memory
+        item = Memory(
+            user_id=user_id,
+            category=memory["category"],
+            content=memory["content"],
+            source_session=session_id,
+        )
+        db.add(item)
+        db.commit()
         db.refresh(item)
-        
+
         # Add to ChromaDB vector store
         try:
             vector = create_embedding(item.content)
-            print(vector[:5])
             add_memory(
                 memory_id=str(item.id),
                 content=item.content,
@@ -92,7 +164,9 @@ def save_memories(
                 }
             )
         except Exception as e:
-            print(f"Failed to index memory {item.id} to ChromaDB: {e}")
+            print(f"Failed to add new memory {item.id} to ChromaDB: {e}")
+            
+        saved_memories.append(item)
 
     return [
         {
@@ -106,6 +180,3 @@ def save_memories(
         }
         for m in saved_memories
     ]
-
-
-
