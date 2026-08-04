@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.services.profile_service import generate_user_profile
+
 from app.database import get_db
 from app.schemas.message import MessageCreate
 from app.schemas.memory import MemorySearchRequest
@@ -51,3 +53,11 @@ def generate_old_embeddings(user_id: str, db: Session = Depends(get_db)):
 def search(data: MemorySearchRequest):
     results = search_memories(data.user_id, data.query)
     return results
+
+@router.get("/profile/{user_id}")
+def get_profile_summary(user_id: str, db: Session = Depends(get_db)):
+    summary = generate_user_profile(db, user_id)
+    return {
+        "user_id": user_id,
+        "profile_summary": summary
+    }
