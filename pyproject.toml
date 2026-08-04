@@ -3,6 +3,10 @@ name = "raavone-memory"
 version = "1.0.0"
 description = "Personal assistant memory service backend using FastAPI"
 authors = ["Your Name <you@example.com>"]
+packages = [
+    { include = "app" },
+    { include = "raavone_core" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"

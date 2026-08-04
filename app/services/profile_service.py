@@ -4,6 +4,15 @@ from raavone_core import ChatModel
 from app.prompts.profile_prompt import USER_PROFILE_PROMPT
 
 def generate_user_profile(db: Session, user_id: str) -> str:
+    """Aggregates all memories of a user and formats a persona profile summary using an LLM.
+
+    Args:
+        db (Session): SQLite database session.
+        user_id (str): The identifier of the target user.
+
+    Returns:
+        str: Summarized persona markdown string.
+    """
     # 1. Fetch memories
     memories = db.query(Memory).filter(Memory.user_id == user_id).all()
     if not memories:

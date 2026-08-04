@@ -4,6 +4,15 @@ from raavone_core import ChatModel
 
 
 def generate_user_timeline(db: Session, user_id: str) -> str:
+    """Generates a chronological progress timeline of the user's milestones using an LLM.
+
+    Args:
+        db (Session): SQLite database session.
+        user_id (str): The identifier of the target user.
+
+    Returns:
+        str: A formatted timeline summarizing user milestones.
+    """
     # 1. Fetch memories sorted chronologically
     memories = (
         db.query(Memory)

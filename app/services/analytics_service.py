@@ -4,6 +4,15 @@ from app.models.memory import Memory
 
 
 def get_user_analytics(db: Session, user_id: str) -> dict:
+    """Calculates statistics of user memories including total count, category breakdowns and average importance.
+
+    Args:
+        db (Session): SQLite database session.
+        user_id (str): The identifier of the target user.
+
+    Returns:
+        dict: A dictionary of analytics data points.
+    """
     # 1. Calculate total memories count
     total_memories = db.query(Memory).filter(Memory.user_id == user_id).count()
 
