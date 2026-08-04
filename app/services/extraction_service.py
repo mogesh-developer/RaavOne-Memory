@@ -1,44 +1,35 @@
+import json
 from app.models.message import Message
 from app.models.memory import Memory
+from app.services.llm_service import extract_memory
+from app.services.embedding_service import create_embedding
+
+
+def build_conversation(messages):
+
+    lines = []
+
+    for message in messages:
+
+        lines.append(
+            f"{message.role}: {message.text}"
+        )
+
+    return "\n".join(lines)
 
 
 def extract_memories(messages: list[Message]):
 
-    memories = []
+    conversation = build_conversation(messages)
 
-    for message in messages:
+    response = extract_memory(conversation)
 
-        text = message.text.lower()
+    for memory in response.memories:
+        print(memory.category, memory.content)
 
-        if "python" in text:
+    return [{"category": m.category, "content": m.content} for m in response.memories]
 
-            memories.append({
-                "category": "skill",
-                "content": "Python"
-            })
 
-        if "fastapi" in text:
-
-            memories.append({
-                "category": "skill",
-                "content": "FastAPI"
-            })
-
-        if "rag" in text:
-
-            memories.append({
-                "category": "project",
-                "content": "RAG"
-            })
-
-        if "ai" in text:
-
-            memories.append({
-                "category": "interest",
-                "content": "AI"
-            })
-
-    return memories
 
 def save_memories(
     db,
@@ -51,42 +42,69 @@ def save_memories(
 
     for memory in memories:
 
-        item = Memory(
-            user_id=user_id,
-            category=memory["category"],
-            content=memory["content"],
-            source_session=session_id,
-        )
-
         existing = (
-    db.query(Memory)
-    .filter(
-        Memory.user_id == user_id,
-        Memory.category == memory["category"],
-        Memory.content == memory["content"],
-    )
-    .first()
-)
-
-    if existing:
-
-        existing.importance += 1
-
-        saved_memories.append(existing)
-
-    else:
-
-        item = Memory(
-            user_id=user_id,
-            category=memory["category"],
-            content=memory["content"],
-            source_session=session_id,
+            db.query(Memory)
+            .filter(
+                Memory.user_id == user_id,
+                Memory.category == memory["category"],
+                Memory.content == memory["content"],
+            )
+            .first()
         )
 
-        db.add(item)
+        if existing:
 
-        saved_memories.append(item)
+            existing.importance += 1
+            saved_memories.append(existing)
+
+        else:
+
+            item = Memory(
+                user_id=user_id,
+                category=memory["category"],
+                content=memory["content"],
+                source_session=session_id,
+            )
+
+            db.add(item)
+            saved_memories.append(item)
 
     db.commit()
 
-    return saved_memories
+    from app.services.vector_service import add_memory
+
+    for item in saved_memories:
+        db.refresh(item)
+        
+        # Add to ChromaDB vector store
+        try:
+            vector = create_embedding(item.content)
+            print(vector[:5])
+            add_memory(
+                memory_id=str(item.id),
+                content=item.content,
+                embedding=vector,
+                metadata={
+                    "user_id": item.user_id,
+                    "category": item.category,
+                    "importance": item.importance,
+                }
+            )
+        except Exception as e:
+            print(f"Failed to index memory {item.id} to ChromaDB: {e}")
+
+    return [
+        {
+            "id": m.id,
+            "user_id": m.user_id,
+            "category": m.category,
+            "content": m.content,
+            "importance": m.importance,
+            "source_session": m.source_session,
+            "created_at": m.created_at,
+        }
+        for m in saved_memories
+    ]
+
+
+

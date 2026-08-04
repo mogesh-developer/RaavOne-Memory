@@ -3,9 +3,14 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.message import MessageCreate
-from app.services.memory_service import save_memory
-from app.services.memory_service import get_history
-from app.services.memory_service import get_memories
+from app.schemas.memory import MemorySearchRequest
+from app.services.memory_service import (
+    save_memory,
+    get_history,
+    get_memories,
+    backfill_embeddings,
+    search_memories,
+)
 
 router = APIRouter(prefix="/memory", tags=["Memory"])
 
@@ -21,6 +26,7 @@ def create_memory(
         "status": "success",
         "id": message.id,
     }
+
 @router.get("/history/{user_id}")
 def get_user_history(user_id: str, db: Session = Depends(get_db)):
     messages = get_history(db, user_id)
@@ -32,3 +38,16 @@ def all_memories(
     db: Session = Depends(get_db),
 ):
     return get_memories(db, user_id)
+
+@router.post("/embed/{user_id}")
+def generate_old_embeddings(user_id: str, db: Session = Depends(get_db)):
+    count = backfill_embeddings(db, user_id)
+    return {
+        "status": "success",
+        "updated_memories_count": count
+    }
+
+@router.post("/search")
+def search(data: MemorySearchRequest):
+    results = search_memories(data.user_id, data.query)
+    return results

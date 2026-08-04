@@ -12,6 +12,10 @@ env/
 # Databases
 storage/*.db
 storage/*.sqlite
+storage/chroma/
+
+# Environment configurations
+.env
 
 # IDEs
 .vscode/

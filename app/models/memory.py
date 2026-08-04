@@ -20,6 +20,8 @@ class Memory(Base):
 
     source_session = Column(String)
 
+    embedding = Column(Text, nullable=True)
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()

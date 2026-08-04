@@ -1,10 +1,8 @@
-from app.services.extraction_service import save_memories
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.message import Message
-from app.services.extraction_service import extract_memories
 from app.services.extraction_service import (
     extract_memories,
     save_memories,
@@ -25,10 +23,10 @@ def extract(session_id: str, db: Session = Depends(get_db)):
         .all()
     )
 
-    memories = extract_memories(messages)
-
     if not messages:
         return []
+
+    memories = extract_memories(messages)
 
     saved = save_memories(
         db=db,
